@@ -1,12 +1,16 @@
 # CS 4395 - Human Language Technologies (NLP)
 
-This repository contains our team's code for CS 4395. The code is organized by assignment, with each assignment having its own directory. The code is written in Python.
+This repository contains our team's code for CS 4395.
+
+The code is organized by assignment, with each assignment having its own directory.
+
+Tested with Python 3.12.3.
 
 ## Team Members
-Alec Ibarra (adi220000)
-Annette Llanas (ajl200006)
-Ashlee Kang (ajk200003)
-Syed Kabir (snk210004)
+- Alec Ibarra (adi220000)
+- Annette Llanas (ajl200006)
+- Ashlee Kang (ajk200003)
+- Syed Kabir (snk210004)
 
 ## Repository Setup (VSCode)
 
