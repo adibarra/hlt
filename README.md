@@ -8,10 +8,11 @@ Annette Llanas (ajl200006)
 Ashlee Kang (ajk200003)
 Syed Kabir (snk210004)
 
-## Repository Setup
+## Repository Setup (VSCode)
 
-1. `Ctrl+Shift+P` -> `Git: Clone` -> `adibarra/hlt`
-2. `Ctrl+Shift+P` -> `Python: Create Environment`
+1. `Ctrl+Shift+P` ➜ `Git: Clone` ➜ `adibarra/hlt`
+2. `Ctrl+Shift+P` ➜ `Python: Create Environment`
+3. Thats it!
 
 ## Running the Code
 
