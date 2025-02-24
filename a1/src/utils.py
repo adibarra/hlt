@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import collections
 import math
+import random
 import re
 from pathlib import Path
 from typing import Literal
@@ -14,9 +15,11 @@ def load_corpus(file_path: str) -> list[str]:
 def preprocess(corpus: list[str]) -> list[str]:
     """Preprocess the text: lowercase, remove punctuation, and tokenize."""
     processed_corpus = []
+    regex = re.compile(r"[^a-zA-Z0-9\s]")
     for line in corpus:
+        line = line.strip()  # noqa: PLW2901
         line = line.lower()  # noqa: PLW2901
-        line = re.sub(r"[^a-zA-Z0-9\s]", "", line)  # noqa: PLW2901
+        line = regex.sub("", line)  # noqa: PLW2901
         tokens = line.split()
         processed_corpus.extend(tokens)
     return processed_corpus
@@ -79,3 +82,15 @@ def calculate_unigram_perplexity(tokens: list[str], unigram_probs: dict[str, flo
         log_sum += math.log(prob)
 
     return math.exp(-log_sum / len(tokens))
+
+def sample_unigram(unigram_probs: dict[str, float], n: int) -> list[str]:
+    """Sample n tokens from the unigram model based on their probabilities."""
+    words = list(unigram_probs.keys())
+    probabilities = list(unigram_probs.values())
+
+    sampled_tokens = []
+    for _ in range(n):
+        sampled_token = random.choices(words, probabilities)[0]
+        sampled_tokens.append(sampled_token)
+
+    return sampled_tokens

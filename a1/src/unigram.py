@@ -4,6 +4,7 @@ from utils import (
     handle_unknown_words,
     load_corpus,
     preprocess,
+    sample_unigram,
 )
 
 
@@ -29,9 +30,6 @@ def main() -> None:
     # handle unknown words in the validation set
     validation_tokens = handle_unknown_words(validation_tokens, unigram_probs, unk_method)
 
-    # calculate perplexity
-    perplexity = calculate_unigram_perplexity(validation_tokens, unigram_probs)
-
     # print statistics
     print(f"\n{'Unigram Model Statistics':^50s}")
     print("-" * 50)
@@ -39,7 +37,8 @@ def main() -> None:
     print(f"{'Unique Tokens':<20s}: {len(unigram_probs)}")
     print(f"{'Smoothing Method':<20s}: {smoothing_method if smoothing_method else 'unsmoothed'}", end="")
     print(f"{' (k=' + str(k_value) + ')' if smoothing_method == 'add-k' else ''}")
-    print(f"{'Perplexity':<20s}: {perplexity:.4f}")
+    print(f"{'Perplexity':<20s}: {calculate_unigram_perplexity(validation_tokens, unigram_probs):.4f}")
+    print(f"{'Sample':<20s}: {' '.join(sample_unigram(unigram_probs, 15))}")
     print("-" * 50, "\n")
 
 if __name__ == "__main__":
