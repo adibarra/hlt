@@ -16,7 +16,8 @@ Tested with Python 3.12.3.
 
 1. `Ctrl+Shift+P` ➜ `Git: Clone` ➜ `adibarra/hlt`
 2. `Ctrl+Shift+P` ➜ `Python: Create Environment`
-3. Thats it!
+3. Install dependencies if prompted.
+4. Thats it!
 
 ## Running the Code
 
