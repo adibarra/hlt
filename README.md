@@ -21,6 +21,8 @@ Tested with Python 3.12.3.
 
 ## Running the Code
 
+All code should be run from the root directory of the repository.
+
 #### Assignment 1
 
 ```bash
