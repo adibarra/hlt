@@ -33,9 +33,10 @@ def handle_unknown_words(tokens: list[str], known_vocab: set, method: Literal["r
         case _:
             return tokens
 
-def build_unigram_model(tokens: list[str], smoothing: Literal["laplace", "add-k"] | None, k: int = 1, *, debug: bool = False) -> tuple[dict[str, float], collections.Counter, int]:
+def build_unigram_model(tokens: list[str], cutoff: int | None, smoothing: Literal["laplace", "add-k"] | None, k: int = 1, *, debug: bool = False) -> tuple[dict[str, float], collections.Counter, int]:
     """Build a unigram model with optional smoothing methods."""
     unigram_counts = collections.Counter(tokens)
+    unigram_counts = {word: count for word, count in unigram_counts.items() if count > cutoff}
     vocab_size = len(unigram_counts) + 1 # add 1 for <UNK> token
     total_tokens = len(tokens)
 
