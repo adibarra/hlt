@@ -17,9 +17,8 @@ def preprocess(corpus: list[str]) -> list[str]:
     processed_corpus = []
     regex = re.compile(r"[^a-zA-Z0-9\s]")
     for line in corpus:
-        line = line.strip()  # noqa: PLW2901
         line = line.lower()  # noqa: PLW2901
-        line = regex.sub("", line)  # noqa: PLW2901
+        line = regex.sub(" ", line)  # noqa: PLW2901
         tokens = line.split()
         processed_corpus.extend(tokens)
     return processed_corpus
