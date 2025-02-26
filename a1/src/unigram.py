@@ -18,10 +18,10 @@ def main() -> None:
     validation_tokens = preprocess(validation_corpus)
 
     # set configuration
-    cutoff_value = 0
+    cutoff_value = 1
+    k_value = 0.9
     smoothing_method = "add-k"
-    k_value = 0.5
-    unk_method = "replacement"
+    unk_method = "deletion"
 
     # build the unigram model
     unigram_probs, unigram_counts, total_tokens = build_unigram_model(
