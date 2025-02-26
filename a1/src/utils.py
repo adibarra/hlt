@@ -18,21 +18,32 @@ def preprocess_unigrams(corpus: List[str]) -> List[str]:
         processed_corpus.extend(tokens) # preferred over append() to add ind. words
     return processed_corpus 
 
-def preprocess_n_grams(corpus: List[str]) -> List[str]:
+def preprocess_n_grams(corpus: List[str]) -> List[List[str]]:
     """Preprocess the text: split sentences, lowercase, remove punctuation, and tokenize into unigrams."""
     processed_corpus = []
-    for line in corpus:
-        start_pattern = r'((?<=^)|(?<=[.!?]\s+))([A-Z])'
-        end_pattern = r'(?<=[.!?])\s+' 
-        line = re.sub(start_pattern, rf'{'<s>'}\2', line)
-        line = re.sub(end_pattern, rf'{'</s>'}\2', line)
-
-    for sentence in sentences:
-        sentence = sentence.lower()
-        sentence = re.sub(r'[^a-zA-Z0-9\s]', '', sentence) # regex to remove special chars
-        tokens = ["<s>"] + sentence.split() + ["</s>"] # add start and end tokens
-        processed_corpus.append(tokens)
-    processed_corpus = [token for sentence in processed_corpus for token in sentence] # convert sentences to unigram tokens
+    unigrams = []
+    for line in corpus: # list of lines -> list of unigrams
+        line = line.lower()
+        words = line.split()
+        unigrams.extend(words)
+    
+    curr_sentence = []
+    sentences = []
+    for token in unigrams: # list of unigrams -> list of sentences (each sentence is list of words)
+        curr_sentence.append(token)
+        if re.match(r'[.!?]', token):
+            sentences.append(curr_sentence)
+            curr_sentence = []
+    
+    for sentence in sentences: # use sentence boundaries to add <s> and </s>
+        cleaned_sentence = ["<s>"]
+        for word in sentence:
+            cleaned_word = re.sub(r'[^a-zA-Z0-9\s]', '', word) # regex to remove special chars
+            if cleaned_word != "":
+                cleaned_sentence.append(cleaned_word)
+        cleaned_sentence.append("</s>")
+        processed_corpus.extend(cleaned_sentence)
+    
     return processed_corpus
 
 def unigrams_to_bigrams(unigrams: List[str]) -> List[str]:
@@ -88,16 +99,16 @@ def build_unigram_model(tokens: List[str], smoothing: Literal['laplace', 'add-k'
 
     return unigram_probs, unigram_counts, total_tokens
 
-def build_bigram_model(tokens: List[str], unigrams: List[str], smoothing: Literal['laplace', 'add-k'] = None, k: int = 1, debug: bool = False) -> Tuple[Dict[str, float], collections.Counter, int]:
+def build_bigram_model(bigram_tokens: List[str], unigrams: List[str], smoothing: Literal['laplace', 'add-k'] = None, k: int = 1, debug: bool = False) -> Tuple[Dict[str, float], collections.Counter, int]:
     """Build a bigram model with optional smoothing methods."""
-    bigram_counts = collections.Counter(tokens) 
+    bigram_counts = collections.Counter(bigram_tokens) 
     unigram_counts = collections.Counter(unigrams)
     vocab_size = len(unigram_counts) + 1 # add 1 for <UNK> token
 
     # calculate probabilities
     bigram_probs = {}
     for bigram, count in bigram_counts.items(): # formatted as dict bigram: count
-        w_1 = bigram[0] # word_1
+        w_1 = bigram[0] # w_(n-1)
         match smoothing:
             case 'laplace':
                 prob = (count + 1) / (unigram_counts[w_1] + vocab_size)
@@ -127,7 +138,7 @@ def build_bigram_model(tokens: List[str], unigrams: List[str], smoothing: Litera
             print(f"{word:<15s} {unigram_counts[word]:<15} {prob:.6f}")
         print()
 
-    return bigram_probs, bigram_counts, len(tokens)
+    return bigram_probs, bigram_counts, len(bigram_tokens)
 
 def calculate_perplexity(tokens: List[str], token_probs: Dict[str, float]) -> float:
     """Calculate the perplexity of a dataset using the unigram model."""

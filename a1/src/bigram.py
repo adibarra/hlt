@@ -8,11 +8,11 @@ def main(): # TODO: print
     # preprocess data into unigrams
     train_unigrams = preprocess_n_grams(train_corpus)
     validation_unigrams = preprocess_n_grams(validation_corpus)
-    print(train_unigrams)
+
     # preprocess unigrams into bigrams
     train_tokens = unigrams_to_bigrams(train_unigrams)
     validation_tokens = unigrams_to_bigrams(validation_unigrams)
-
+    
     # set configuration
     unk_method = 'replacement'
     smoothing_method = 'add-k'
@@ -38,6 +38,6 @@ def main(): # TODO: print
     print(f"{' (k=' + str(k_value) + ')' if smoothing_method == 'add-k' else ''}")
     print(f"{'Perplexity':<20s}: {perplexity:.4f}")
     print('-' * 50, '\n') 
-
+    
 if __name__ == '__main__':
     main()

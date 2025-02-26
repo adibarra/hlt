@@ -8,7 +8,7 @@ def main():
     # preprocess the data
     train_tokens = preprocess_unigrams(train_corpus)
     validation_tokens = preprocess_unigrams(validation_corpus)
-
+    
     # set configuration
     unk_method = 'replacement'
     smoothing_method = 'add-k'
