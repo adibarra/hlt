@@ -1,4 +1,4 @@
-from utils import load_corpus, preprocess, build_unigram_model, handle_unknown_words, calculate_unigram_perplexity
+from utils import load_corpus, preprocess_unigrams, build_unigram_model, handle_unknown_words, calculate_perplexity
 
 def main():
     # load the data
@@ -6,8 +6,8 @@ def main():
     validation_corpus = load_corpus('a1/src/A1_DATASET/val.txt')
 
     # preprocess the data
-    train_tokens = preprocess(train_corpus)
-    validation_tokens = preprocess(validation_corpus)
+    train_tokens = preprocess_unigrams(train_corpus)
+    validation_tokens = preprocess_unigrams(validation_corpus)
 
     # set configuration
     unk_method = 'replacement'
@@ -23,7 +23,7 @@ def main():
     validation_tokens = handle_unknown_words(validation_tokens, unigram_probs, unk_method)
 
     # calculate perplexity
-    perplexity = calculate_unigram_perplexity(validation_tokens, unigram_probs)
+    perplexity = calculate_perplexity(validation_tokens, unigram_probs)
 
     # print statistics
     print(f"\n{'Unigram Model Statistics':^50s}")
