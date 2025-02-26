@@ -18,7 +18,7 @@ def preprocess_unigrams(corpus: List[str]) -> List[str]:
         processed_corpus.extend(tokens) # preferred over append() to add ind. words
     return processed_corpus 
 
-def preprocess_n_grams(corpus: List[str]) -> List[str]:
+def preprocess_n_grams(corpus: List[str]) -> List[str]: # need to fix sentence splitting
     """Preprocess the text: split sentences, lowercase, remove punctuation, and tokenize into unigrams."""
     processed_corpus = []
     for line in corpus:
