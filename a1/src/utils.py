@@ -1,19 +1,24 @@
+from __future__ import annotations
+
 import collections
 import math
+import random
 import re
-from typing import List, Literal, Tuple, Dict
+from pathlib import Path
+from typing import Literal
 
-def load_corpus(file_path: str) -> List[str]:
-    """Load the dataset from a file."""
-    with open(file_path, 'r', encoding='utf-8') as f:
+
+def load_corpus(file_path: str) -> list[str]:
+    with Path(file_path).open(encoding="utf-8") as f:
         return f.readlines()
 
-def preprocess_unigrams(corpus: List[str]) -> List[str]:
-    # Preprocess the text: lowercase, remove punctuation, and tokenize.
+def preprocess(corpus: list[str]) -> list[str]:
+    """Preprocess the text: lowercase, remove punctuation, and tokenize."""
     processed_corpus = []
+    regex = re.compile(r"[^a-zA-Z0-9\s]")
     for line in corpus:
-        line = line.lower()
-        line = re.sub(r'[^a-zA-Z0-9\s]', '', line) # regex to remove special chars
+        line = line.lower()  # noqa: PLW2901
+        line = regex.sub(" ", line)  # noqa: PLW2901
         tokens = line.split()
         processed_corpus.extend(tokens) # preferred over append() to add ind. words
     return processed_corpus 
@@ -59,9 +64,10 @@ def handle_unknown_words(tokens: List[str], known_vocab: set, method: Literal['r
         case _:
             return tokens
 
-def build_unigram_model(tokens: List[str], smoothing: Literal['laplace', 'add-k'] = None, k: int = 1, debug: bool = False) -> Tuple[Dict[str, float], collections.Counter, int]:
+def build_unigram_model(tokens: list[str], cutoff: int | None, smoothing: Literal["laplace", "add-k"] | None, k: int = 1, *, debug: bool = False) -> tuple[dict[str, float], collections.Counter, int]:
     """Build a unigram model with optional smoothing methods."""
     unigram_counts = collections.Counter(tokens)
+    unigram_counts = {word: count for word, count in unigram_counts.items() if count > cutoff}
     vocab_size = len(unigram_counts) + 1 # add 1 for <UNK> token
     total_tokens = len(tokens)
 
@@ -69,9 +75,9 @@ def build_unigram_model(tokens: List[str], smoothing: Literal['laplace', 'add-k'
     unigram_probs = {}
     for word, count in unigram_counts.items():
         match smoothing:
-            case 'laplace':
+            case "laplace":
                 prob = (count + 1) / (total_tokens + vocab_size)
-            case 'add-k':
+            case "add-k":
                 prob = (count + k) / (total_tokens + k * vocab_size)
             case _:
                 prob = count / total_tokens
@@ -80,19 +86,19 @@ def build_unigram_model(tokens: List[str], smoothing: Literal['laplace', 'add-k'
 
     # handle <UNK>
     match smoothing:
-        case 'laplace':
-            unigram_probs['<UNK>'] = 1 / (total_tokens + vocab_size)
-        case 'add-k':
-            unigram_probs['<UNK>'] = k / (total_tokens + k * vocab_size)
+        case "laplace":
+            unigram_probs["<UNK>"] = 1 / (total_tokens + vocab_size)
+        case "add-k":
+            unigram_probs["<UNK>"] = k / (total_tokens + k * vocab_size)
         case _:
-            unigram_probs['<UNK>'] = 0
+            unigram_probs["<UNK>"] = 0
 
     # print debug info
     if (debug):
         print(f"{'Word':<15s} {'Count':<15} {'Probability':<15s}")
-        print('-' * 50)
+        print("-" * 50)
         for i, (word, prob) in enumerate(unigram_probs.items()):
-            if i >= 30:
+            if i >= 30:  # noqa: PLR2004
                 break
             print(f"{word:<15s} {unigram_counts[word]:<15} {prob:.6f}")
         print()
@@ -148,3 +154,15 @@ def calculate_perplexity(tokens: List[str], token_probs: Dict[str, float]) -> fl
         log_sum += math.log(prob)
 
     return math.exp(-log_sum / len(tokens))
+
+def sample_unigram(unigram_probs: dict[str, float], n: int) -> list[str]:
+    """Sample n tokens from the unigram model based on their probabilities."""
+    words = list(unigram_probs.keys())
+    probabilities = list(unigram_probs.values())
+
+    sampled_tokens = []
+    for _ in range(n):
+        sampled_token = random.choices(words, probabilities)[0]
+        sampled_tokens.append(sampled_token)
+
+    return sampled_tokens
