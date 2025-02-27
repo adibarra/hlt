@@ -19,13 +19,13 @@ def main(): # TODO: print
     k_value = 0.5
     
     # build the bigram model
-    bigram_probs, bigram_counts, total_tokens = build_bigram_model(
+    bigram_probs, bigram_counts, unigram_counts, total_tokens = build_bigram_model(
         train_tokens, train_unigrams, smoothing=smoothing_method, k=k_value
     )
 
     # handle unknown words in the validation set
-    validation_tokens = handle_unknown_words(validation_tokens, bigram_probs, unk_method)
-
+    validation_tokens = handle_unknown_words(validation_tokens, bigram_counts, unk_method)
+    print(validation_tokens)
     # calculate perplexity
     perplexity = calculate_perplexity(validation_tokens, bigram_probs)
 

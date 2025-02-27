@@ -18,7 +18,7 @@ def preprocess_unigrams(corpus: List[str]) -> List[str]:
         processed_corpus.extend(tokens) # preferred over append() to add ind. words
     return processed_corpus 
 
-def preprocess_n_grams(corpus: List[str]) -> List[str]: # need to fix sentence splitting
+def preprocess_n_grams(corpus: List[str]) -> List[str]: 
     """Preprocess the text: split sentences, lowercase, remove punctuation, and tokenize into unigrams."""
     processed_corpus = []
     unigrams = []
@@ -126,7 +126,7 @@ def build_bigram_model(bigram_tokens: List[str], unigrams: List[str], smoothing:
         case 'add-k':
             bigram_probs['<UNK>'] = k / (k * vocab_size)
         case _:
-            unigram_probs['<UNK>'] = 0
+            bigram_probs['<UNK>'] = 0
 
     # print debug info
     if (debug):
@@ -138,7 +138,7 @@ def build_bigram_model(bigram_tokens: List[str], unigrams: List[str], smoothing:
             print(f"{word:<15s} {unigram_counts[word]:<15} {prob:.6f}")
         print()
 
-    return bigram_probs, bigram_counts, len(bigram_tokens)
+    return bigram_probs, bigram_counts, unigram_counts, len(bigram_tokens)
 
 def calculate_perplexity(tokens: List[str], token_probs: Dict[str, float]) -> float:
     """Calculate the perplexity of a dataset using the unigram model."""
