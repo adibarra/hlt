@@ -16,7 +16,7 @@ def main() -> None:
     # preprocess the data
     train_tokens = preprocess(train_corpus)
     validation_tokens = preprocess(validation_corpus)
-    
+
     # set configuration
     cutoff_value = 1
     k_value = 0.9
