@@ -25,7 +25,7 @@ def main(): # TODO: print
 
     # handle unknown words in the validation set
     validation_tokens = handle_unknown_words(validation_tokens, bigram_counts, unk_method)
-    print(validation_tokens)
+
     # calculate perplexity
     perplexity = calculate_perplexity(validation_tokens, bigram_probs)
 
@@ -36,6 +36,7 @@ def main(): # TODO: print
     print(f"{'Unique Tokens':<20s}: {len(bigram_probs)}")
     print(f"{'Smoothing Method':<20s}: {smoothing_method if smoothing_method else 'unsmoothed'}", end='')
     print(f"{' (k=' + str(k_value) + ')' if smoothing_method == 'add-k' else ''}")
+    print(f"{'Unknown Method':<20s}: {unk_method}")
     print(f"{'Perplexity':<20s}: {perplexity:.4f}")
     print('-' * 50, '\n') 
     
