@@ -14,8 +14,8 @@ def main() -> None:
     validation_corpus = load_corpus("a1/src/A1_DATASET/val.txt")
 
     # preprocess the data
-    train_tokens = preprocess_unigrams(train_corpus)
-    validation_tokens = preprocess_unigrams(validation_corpus)
+    train_tokens = preprocess(train_corpus)
+    validation_tokens = preprocess(validation_corpus)
     
     # set configuration
     cutoff_value = 1
