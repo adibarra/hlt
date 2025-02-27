@@ -27,10 +27,10 @@ All code should be run from the root directory of the repository.
 
 ```bash
 # Run the unigram model
-python3 ./a1/src/unigram.py
+python ./a1/src/unigram.py
 
 # Run the bigram model
-python3 ./a1/src/bigram.py
+python ./a1/src/bigram.py
 ```
 
 #### Assignment 2
