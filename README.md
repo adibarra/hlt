@@ -2,9 +2,7 @@
 
 This repository contains our team's code for CS 4395.
 
-The code is organized by assignment, with each assignment having its own directory.
-
-Tested with Python 3.12.3.
+[Tested with Python 3.12.3]
 
 ## Repository Setup (VSCode)
 
@@ -19,7 +17,7 @@ Each assignment has its own set of instructions for running the models.
 
 ## Assignment 1 - Unigram and Bigram Language Models
 
-[[View the report, implementation, and instructions]](./a1/README.md)
+[[View the report, implementation, and instructions]](./a1/)
 
 In **Assignment 1**, we implemented two primary types of language models:
 - **Unigram Model**: A probabilistic model that estimates the likelihood of individual words, without considering any word context.
@@ -32,9 +30,9 @@ Additionally, we applied several techniques to improve the models:
 
 This assignment also served as an introduction to probabilistic language models and their evaluation techniques.
 
-**Assignment 2 - Neural Networks for Sentiment Analysis**
+## Assignment 2 - Neural Networks for Sentiment Analysis
 
-[[View the report, implementation, and instructions]](./a2/README.md)
+[[View the report, implementation, and instructions]](./a2/)
 
 In **Assignment 2**, we implement neural network models for a 5-class sentiment analysis task using Yelp reviews. The two models are:
 - **Feedforward Neural Network (FFNN)**: A simple architecture for classifying reviews based on bag-of-words vectors.
