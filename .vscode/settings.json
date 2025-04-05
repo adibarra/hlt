@@ -8,9 +8,13 @@
         "Kabir",
         "Kang",
         "Llanas",
+        "minibatch",
+        "numpy",
         "pycodestyle",
         "Syed",
+        "tqdm",
         "unigram",
-        "unsmoothed"
+        "unsmoothed",
+        "Vectorizing"
     ]
 }
