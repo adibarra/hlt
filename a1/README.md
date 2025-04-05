@@ -26,6 +26,8 @@ The report for this assignment can be found in the `docs` directory. It includes
 ## Run the Models
 All code should be run from the root directory of the repository.
 
+Follow the instructions [here](../#repository-setup-vscode) for repository setup.
+
 - **To run the Unigram model**:
     ```bash
     python ./a1/src/unigram.py
