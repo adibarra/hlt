@@ -1,5 +1,4 @@
-# CS 4395 - Human Language Technologies (NLP)
-**Assignment 1 - Unigram and Bigram Language Models**
+# Assignment 1 - Unigram and Bigram Language Models
 
 This directory contains our implementation for **Assignment 1**.
 
@@ -21,8 +20,8 @@ Additionally, we applied several techniques to improve the models:
 
 This assignment also served as an introduction to probabilistic language models and their evaluation techniques.
 
-## Report
-The report for this assignment can be found in the `docs` directory.
+## Report and documentation
+The report for this assignment can be found in the `docs` directory. It includes details on the models, training process, and evaluation metrics.
 
 ## Run the Models
 All code should be run from the root directory of the repository.
