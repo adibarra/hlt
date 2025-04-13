@@ -1,27 +1,25 @@
 from __future__ import annotations
 
-import json
 import pickle
 import random
-import string
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
 import torch
 from torch import Tensor, nn, optim
 from tqdm import tqdm
+from utils import load_data, process_input
 
-unk = "<UNK>"
 
 # Consult the PyTorch documentation for information on the functions used below:
 # https://pytorch.org/docs/stable/torch.html
 class RNN(nn.Module):
-    def __init__(self, input_dim: int, h: int) -> None:
+    def __init__(self, input_dim: int, h: int, output_dim: int = 5) -> None:
         super().__init__()
         self.h: int = h
         self.numOfLayer: int = 1
         self.rnn: nn.RNN = nn.RNN(input_dim, h, self.numOfLayer, nonlinearity="tanh")
-        self.W: nn.Linear = nn.Linear(h, 5)
+        self.W: nn.Linear = nn.Linear(h, output_dim)
         self.softmax: nn.LogSoftmax = nn.LogSoftmax(dim=1)
         self.loss: nn.NLLLoss = nn.NLLLoss()
 
@@ -43,18 +41,6 @@ class RNN(nn.Module):
         predicted_vector = self.softmax(logits)
 
         return predicted_vector
-
-
-def load_data(train_data: str, val_data: str) -> tuple[list[tuple[list[str], int]], list[tuple[list[str], int]]]:
-    with Path(train_data).open() as training_f:
-        training = json.load(training_f)
-    with Path(val_data).open() as valid_f:
-        validation = json.load(valid_f)
-
-    tra: list[tuple[list[str], int]] = [(elt["text"].split(), int(elt["stars"] - 1)) for elt in training]
-    val: list[tuple[list[str], int]] = [(elt["text"].split(), int(elt["stars"] - 1)) for elt in validation]
-    return tra, val
-
 
 if __name__ == "__main__":
     parser: ArgumentParser = ArgumentParser()
@@ -79,20 +65,21 @@ if __name__ == "__main__":
     print("========== Vectorizing data ==========")
     model: RNN = RNN(50, args.hidden_dim)
     optimizer: optim.Optimizer = optim.Adam(model.parameters(), lr=0.01)
-    # optimizer: optim.Optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
 
     with (Path(__file__).parent / "word_embedding.pkl").open("rb") as f:
         word_embedding: dict = pickle.load(f)
 
-    stopping_condition: bool = False
     epoch: int = 0
     last_train_accuracy: float = 0
     last_validation_accuracy: float = 0
+    patience: int = 2
+    patience_counter: int = 0
+    stopping_condition: bool = False
 
     while not stopping_condition:
         random.shuffle(train_data)
         model.train()
-        # You will need further code to operationalize training, ffnn.py may be helpful
         print(f"Training started for epoch {epoch + 1}")
         correct = 0
         total = 0
@@ -106,19 +93,7 @@ if __name__ == "__main__":
             loss: Tensor = None
             for example_index in range(minibatch_size):
                 input_words, gold_label = train_data[minibatch_index * minibatch_size + example_index]
-                input_words = " ".join(input_words)
-
-                # Remove punctuation
-                input_words = input_words.translate(input_words.maketrans("", "", string.punctuation)).split()
-
-                # Look up word embedding dictionary
-                vectors = [
-                    word_embedding[i.lower()] if i.lower() in word_embedding else word_embedding["unk"]
-                    for i in input_words
-                ]
-
-                # Transform the input into required shape
-                vectors_tensor: Tensor = torch.tensor(vectors).view(len(vectors), 1, -1)
+                vectors_tensor: Tensor = process_input(input_words, word_embedding)
                 output: Tensor = model(vectors_tensor)
 
                 # Get loss
@@ -136,7 +111,7 @@ if __name__ == "__main__":
                     loss += example_loss
 
             loss = loss / minibatch_size
-            loss_total += loss.data
+            loss_total += loss.item()
             loss_count += 1
             loss.backward()
             optimizer.step()
@@ -152,33 +127,34 @@ if __name__ == "__main__":
         random.shuffle(valid_data)
         print(f"Validation started for epoch {epoch + 1}")
 
-        for input_words, gold_label in tqdm(valid_data):
-            input_words = " ".join(input_words)  # noqa: PLW2901
-            input_words = input_words.translate(input_words.maketrans("", "", string.punctuation)).split()  # noqa: PLW2901
-            vectors = [
-                word_embedding[i.lower()] if i.lower() in word_embedding else word_embedding["unk"]
-                for i in input_words
-            ]
-            vectors_tensor: Tensor = torch.tensor(vectors).view(len(vectors), 1, -1)
-            output: Tensor = model(vectors_tensor)
-            predicted_label: Tensor = torch.argmax(output)
+        with torch.no_grad():
+            for input_words, gold_label in tqdm(valid_data):
+                vectors_tensor: Tensor = process_input(input_words, word_embedding)
+                output: Tensor = model(vectors_tensor)
+                predicted_label: Tensor = torch.argmax(output)
 
-            correct += int(predicted_label == gold_label)
-            total += 1
-            # print(predicted_label, gold_label)
+                correct += int(predicted_label == gold_label)
+                total += 1
+                # print(predicted_label, gold_label)
         print(f"Validation completed for epoch {epoch + 1}")
         print(f"Validation accuracy for epoch {epoch + 1}: {correct / total}")
         validation_accuracy: float = correct / total
 
-        if validation_accuracy < last_validation_accuracy and training_accuracy > last_train_accuracy:
+        if validation_accuracy > last_validation_accuracy:
+            patience_counter = 0
+        else:
+            patience_counter += 1
+
+        if patience_counter >= patience:
             stopping_condition = True
-            print("Training done to avoid overfitting!")
+            print("Early stopping triggered due to no improvement in validation accuracy!")
             print("Best validation accuracy is:", last_validation_accuracy)
         else:
             last_validation_accuracy = validation_accuracy
             last_train_accuracy = training_accuracy
 
         epoch += 1
+        scheduler.step()
 
     # You may find it beneficial to keep track of training accuracy or training loss;
     # Think about how to update the model and what this entails. Consider ffnn.py and the PyTorch documentation for guidance
