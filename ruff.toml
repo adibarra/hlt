@@ -1,4 +1,4 @@
 [lint]
 select = ["ALL"]
-ignore = ["T201", "INP001", "D100", "D101", "D103", "D107", "S311"]
+ignore = ["T201", "INP001", "D100", "D101", "D102", "D103", "D107", "S311"]
 pycodestyle.max-line-length = 200
