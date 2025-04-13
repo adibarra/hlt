@@ -30,9 +30,9 @@ Follow the instructions [here](../#repository-setup-vscode) for repository setup
 
 - **To run the Unigram model**:
     ```bash
-    python ./a1/src/unigram.py
+    python a1/src/unigram.py
     ```
 - **To run the Bigram model**:
     ```bash
-    python ./a1/src/bigram.py
+    python a1/src/bigram.py
     ```

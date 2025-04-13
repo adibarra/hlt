@@ -10,8 +10,8 @@ from utils import (
 
 def main() -> None:
     # load the data
-    train_corpus = load_corpus("a1/src/A1_DATASET/train.txt")
-    validation_corpus = load_corpus("a1/src/A1_DATASET/val.txt")
+    train_corpus = load_corpus("a1/src/data/train.txt")
+    validation_corpus = load_corpus("a1/src/data/val.txt")
 
     # preprocess data into unigrams
     train_unigrams = preprocess_n_grams(train_corpus)

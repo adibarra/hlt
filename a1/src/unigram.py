@@ -10,8 +10,8 @@ from utils import (
 
 def main() -> None:
     # load the data
-    train_corpus = load_corpus("a1/src/A1_DATASET/train.txt")
-    validation_corpus = load_corpus("a1/src/A1_DATASET/val.txt")
+    train_corpus = load_corpus("a1/src/data/train.txt")
+    validation_corpus = load_corpus("a1/src/data/val.txt")
 
     # preprocess the data
     train_tokens = preprocess(train_corpus)
