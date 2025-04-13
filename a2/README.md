@@ -22,9 +22,9 @@ Follow the instructions [here](../#repository-setup-vscode) for repository setup
 
 - **To run the FFNN model**:
     ```bash
-    python ./a2/src/ffnn.py
+    python a2/src/ffnn.py
     ```
 - **To run the RNN model**:
     ```bash
-    python ./a2/src/rnn.py
+    python a2/src/rnn.py -hd 128 -e 10 --train_data a2/src/data/train.json --val_data a2/src/data/val.json --test_data a2/src/data/test.json --do_train
     ```
