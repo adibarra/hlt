@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pickle
+import platform
 import random
 from argparse import ArgumentParser
 from pathlib import Path
@@ -52,26 +53,26 @@ class RNN(nn.Module):
             input_data, labels = [], []
             for example_index in range(minibatch_index, min(minibatch_index + minibatch_size, N)):
                 input_words, gold_label = train_data[example_index]
-                vectors_tensor = process_input(input_words, word_embedding)
+                vectors_tensor = process_input(input_words, word_embedding).to(device)
                 input_data.append(vectors_tensor)
                 labels.append(gold_label)
 
-            input_data = pad_sequence(input_data, batch_first=True, padding_value=0)
-            labels = torch.tensor(labels)
+            input_data = pad_sequence(input_data, batch_first=True, padding_value=0).to(device)
+            labels = torch.tensor(labels).to(device)
 
             output = self(input_data)
             loss = self.compute_loss(output, labels)
-            epoch_loss += loss.item()
+            epoch_loss += loss.item() * labels.size(0)
 
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+            torch.nn.utils.clip_grad_norm_(self.parameters(), max_norm=1.0)
             optimizer.step()
 
             _, predicted = torch.max(output, 1)
             correct += (predicted == labels).sum().item()
             total += labels.size(0)
 
-        return correct / total, epoch_loss / (N // minibatch_size)
+        return correct / total, epoch_loss / total
 
     def evaluate(self, val_data: list[tuple[list[str], int]], word_embedding: dict[str, torch.Tensor]) -> tuple[float, float]:
         self.eval()
@@ -81,23 +82,23 @@ class RNN(nn.Module):
 
         input_data, labels = [], []
         for input_words, gold_label in val_data:
-            vectors_tensor = process_input(input_words, word_embedding)
+            vectors_tensor = process_input(input_words, word_embedding).to(device)
             input_data.append(vectors_tensor)
             labels.append(gold_label)
 
-        input_data = pad_sequence(input_data, batch_first=True, padding_value=0)
-        labels = torch.tensor(labels)
+        input_data = pad_sequence(input_data, batch_first=True, padding_value=0).to(device)
+        labels = torch.tensor(labels).to(device)
 
         with torch.no_grad():
             output = self(input_data)
             loss = self.compute_loss(output, labels)
-            val_loss += loss.item()
+            val_loss += loss.item() * labels.size(0)
 
             _, predicted = torch.max(output, 1)
             correct += (predicted == labels).sum().item()
             total += labels.size(0)
 
-        return correct / total, val_loss
+        return correct / total, val_loss / total
 
 
 if __name__ == "__main__":
@@ -111,15 +112,24 @@ if __name__ == "__main__":
     parser.add_argument(        "--do-train",               action="store_true",  help="whether to train the model")
     args = parser.parse_args()
 
+    print(">>> Setting up environment")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device_name = torch.cuda.get_device_name(0) if device.type == "cuda" else platform.processor
+    print(f"Using device: {device_name} {'(GPU)' if device.type == 'cuda' else '(CPU)'}")
+    if device.type == "cuda":
+        torch.backends.cudnn.deterministic = True
+    torch.manual_seed(42)
+    random.seed(42)
+
     print(">>> Loading data")
     train_data, val_data = load_data(args.train_data, args.val_data)
     with Path.open(Path(__file__).parent / "word_embedding.pkl", "rb") as f:
         word_embedding = pickle.load(f)  # noqa: S301
 
     print(">>> Building model")
-    model = RNN(input_dim=50, hidden_dim=args.hidden_dim)
+    model = RNN(input_dim=50, hidden_dim=args.hidden_dim).to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
-    scheduler = StepLR(optimizer, step_size=1, gamma=0.9)
+    scheduler = StepLR(optimizer, step_size=1, gamma=0.75)
 
     print("=" * 125)
     print(f"Hidden dimension: {args.hidden_dim}")
