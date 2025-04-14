@@ -16,9 +16,9 @@ from utils import load_data, process_input
 
 
 class RNN(nn.Module):
-    def __init__(self, input_dim: int, hidden_dim: int, output_dim: int = 5) -> None:
+    def __init__(self, input_dim: int, hidden_dim: int, num_layers: int, output_dim: int = 5) -> None:
         super().__init__()
-        self.rnn = nn.RNN(input_dim, hidden_dim, batch_first=True, bidirectional=True)
+        self.rnn = nn.RNN(input_dim, hidden_dim, num_layers=num_layers, batch_first=True, bidirectional=True)
         self.dropout = nn.Dropout(0.3)
         self.fc = nn.Linear(hidden_dim * 2, output_dim)
         self.loss_fn = nn.CrossEntropyLoss()
@@ -100,13 +100,15 @@ class RNN(nn.Module):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("-hd",  "--hidden-dim",  type=int,  default=128,                       help="hidden dimension size")
-    parser.add_argument("-e",   "--epochs",      type=int,  default=30,                        help="number of epochs")
-    parser.add_argument("-p",   "--patience",    type=int,  default=5,                         help="patience for early stopping")
-    parser.add_argument(        "--train-data",  type=str,  default="a2/src/data/train.json",  help="path to training data")
-    parser.add_argument(        "--val-data",    type=str,  default="a2/src/data/val.json",    help="path to validation data")
-    parser.add_argument(        "--test-data",   type=str,  default="a2/src/data/test.json",   help="path to test data")
-    parser.add_argument(        "--do-train",               action="store_true",               help="whether to train the model")
+    parser.add_argument("-nl", "--num-layers",    type=int,   default=1,                        help="number of hidden layers")
+    parser.add_argument("-hd", "--hidden-dim",    type=int,   default=128,                      help="hidden dimension size")
+    parser.add_argument("-lr", "--learning-rate", type=float, default=3e-4,                     help="learning rate")
+    parser.add_argument("-e",  "--epochs",        type=int,   default=30,                       help="number of epochs")
+    parser.add_argument("-p",  "--patience",      type=int,   default=7,                        help="patience for early stopping")
+    parser.add_argument(       "--train-data",    type=str,   default="a2/src/data/train.json", help="path to training data")
+    parser.add_argument(       "--val-data",      type=str,   default="a2/src/data/val.json",   help="path to validation data")
+    parser.add_argument(       "--test-data",     type=str,   default="a2/src/data/test.json",  help="path to test data")
+    parser.add_argument(        "--do-train",                 action="store_true",              help="whether to train the model")
     args = parser.parse_args()
 
     print(">>> Setting up environment")
@@ -128,15 +130,16 @@ if __name__ == "__main__":
         sys.exit(1)
 
     print(">>> Building model")
-    model = RNN(input_dim=50, hidden_dim=args.hidden_dim).to(device)
-    optimizer = optim.Adam(model.parameters(), lr=3e-4, weight_decay=1e-6)
+    model = RNN(input_dim=50, hidden_dim=args.hidden_dim, num_layers=args.num_layers).to(device)
+    optimizer = optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=1e-6)
     scheduler = ReduceLROnPlateau(optimizer, mode="max", min_lr=1e-6, factor=0.5, patience=3)
 
     print("=" * 50)
+    print(f"{'Number of layers':<25s}: {args.num_layers}")
     print(f"{'Hidden dimension':<25s}: {args.hidden_dim}")
     print(f"{'Epochs':<25s}: {args.epochs}")
     print(f"{'Optimizer':<25s}: {optimizer.__class__.__name__}")
-    print(f"{'Optimizer learning rate':<25s}: {optimizer.param_groups[0]['lr']}")
+    print(f"{'Optimizer learning rate':<25s}: {args.learning_rate}")
     print(f"{'Optimizer weight decay':<25s}: {optimizer.param_groups[0]['weight_decay']}")
     print(f"{'Scheduler':<25s}: {scheduler.__class__.__name__}")
     print(f"{'Scheduler mode':<25s}: {scheduler.mode}")
