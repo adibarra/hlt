@@ -10,6 +10,7 @@ import time
 from tqdm import tqdm
 import json
 from argparse import ArgumentParser
+from torch.optim.lr_scheduler import StepLR
 
 
 unk = "<UNK>"
@@ -32,10 +33,13 @@ class FFNN(nn.Module):
 
     def forward(self, input_vector):
         # [to fill] obtain first hidden layer representation
+        h = self.activation(self.W1(input_vector))
 
         # [to fill] obtain output layer representation
+        z = self.W2(h)
 
         # [to fill] obtain probability dist.
+        predicted_vector = self.softmax(z)
 
         return predicted_vector
 
@@ -98,32 +102,53 @@ def load_data(train_data, val_data):
 
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument("-hd", "--hidden_dim", type=int, required = True, help = "hidden_dim")
-    parser.add_argument("-e", "--epochs", type=int, required = True, help = "num of epochs to train")
-    parser.add_argument("--train_data", required = True, help = "path to training data")
-    parser.add_argument("--val_data", required = True, help = "path to validation data")
-    parser.add_argument("--test_data", default = "to fill", help = "path to test data")
-    parser.add_argument("--do_train", action="store_true")
+    parser.add_argument("-hd",  "--hidden-dim",  type=int,  required=True,        help="hidden dimension size")
+    parser.add_argument("-e",   "--epochs",      type=int,  required=True,        help="number of epochs")
+    parser.add_argument("-p",   "--patience",    type=int,  default=5,            help="patience for early stopping")
+    parser.add_argument(        "--train-data",  type=str,  required=True,        help="path to training data")
+    parser.add_argument(        "--val-data",    type=str,  required=True,        help="path to validation data")
+    parser.add_argument(        "--test-data",   type=str,  default="to fill",    help="path to test data")
+    parser.add_argument(        "--do-train",               action="store_true",  help="whether to train the model")
     args = parser.parse_args()
 
-    # fix random seeds
-    random.seed(42)
+    print(">>> Setting up environment")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device_name = torch.cuda.get_device_name(0) if device.type == "cuda" else platform.processor
+    print(f"Using device: {device_name} {'(GPU)' if device.type == 'cuda' else '(CPU)'}")
+    if device.type == "cuda":
+        torch.backends.cudnn.deterministic = True
     torch.manual_seed(42)
+    random.seed(42)
 
-    # load data
-    print("========== Loading data ==========")
-    train_data, valid_data = load_data(args.train_data, args.val_data) # X_data is a list of pairs (document, y); y in {0,1,2,3,4}
+    print(">>> Loading data")
+    train_data, val_data = load_data(args.train_data, args.val_data)
     vocab = make_vocab(train_data)
     vocab, word2index, index2word = make_indices(vocab)
 
-    print("========== Vectorizing data ==========")
+    print(">>> Vectorizing data")
     train_data = convert_to_vector_representation(train_data, word2index)
-    valid_data = convert_to_vector_representation(valid_data, word2index)
+    valid_data = convert_to_vector_representation(val_data, word2index)
 
-
+    print(">>> Building model")
     model = FFNN(input_dim = len(vocab), h = args.hidden_dim)
     optimizer = optim.SGD(model.parameters(),lr=0.01, momentum=0.9)
-    print(f"========== Training for {args.epochs} epochs ==========")
+    scheduler = StepLR(optimizer, step_size=1, gamma=0.75)
+
+    print("=" * 125)
+    print(f"Hidden dimension: {args.hidden_dim}")
+    print(f"Epochs: {args.epochs}")
+    print(f"Learning rate: {optimizer.param_groups[0]['lr']}")
+    print(f"Scheduler: {scheduler.__class__.__name__}")
+    print(f"Scheduler step size: {scheduler.step_size}")
+    print(f"Scheduler gamma: {scheduler.gamma}")
+    print(f"Early stopping patience: {args.patience}")
+    print("=" * 125)
+
+    patience_counter = 0
+    stopping_condition = False
+    best = {"epoch": 0, "train_acc": 0, "val_acc": 0, "train_loss": float("inf"), "val_loss": float("inf")}
+
+    print(">>> Training")
     for epoch in range(args.epochs):
         model.train()
         optimizer.zero_grad()
