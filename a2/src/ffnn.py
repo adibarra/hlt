@@ -1,103 +1,90 @@
-import numpy as np
-import torch
-import torch.nn as nn
-from torch.nn import init
-import torch.optim as optim
-import math
+from __future__ import annotations
+
+import platform
 import random
-import os
-import time
-from tqdm import tqdm
-import json
 from argparse import ArgumentParser
+
+import torch
+from torch import nn, optim
 from torch.optim.lr_scheduler import StepLR
+from tqdm import tqdm
+from utils import convert_to_vector_representation, load_data, make_indices, make_vocab
 
 
-unk = "<UNK>"
-# Consult the PyTorch documentation for information on the functions used below:
-# https://pytorch.org/docs/stable/torch.html
 class FFNN(nn.Module):
-    def __init__(self, input_dim, h) -> None:
+    def __init__(self, input_dim: int, hidden_dim: int, output_dim: int = 5) -> None:
         super().__init__()
-        self.h = h
-        self.W1 = nn.Linear(input_dim, h)
-        self.activation = nn.ReLU() # The rectified linear unit; one valid choice of activation function
-        self.output_dim = 5
-        self.W2 = nn.Linear(h, self.output_dim)
+        self.ffnn = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(0.3),
+            nn.Linear(hidden_dim, output_dim),
+            nn.LogSoftmax(dim=1),
+        )
+        self.loss_fn = nn.NLLLoss()
 
-        self.softmax = nn.LogSoftmax() # The softmax function that converts vectors into probability distributions; computes log probabilities for computational benefits
-        self.loss = nn.NLLLoss() # The cross-entropy/negative log likelihood loss taught in class
+    def forward(self, input_vector: torch.Tensor) -> torch.Tensor:
+        return self.ffnn(input_vector)
 
-    def compute_loss(self, predicted_vector, gold_label):
-        return self.loss(predicted_vector, gold_label)
+    def compute_loss(self, predicted_vector: torch.Tensor, gold_label: torch.Tensor) -> torch.Tensor:
+        return self.loss_fn(predicted_vector, gold_label)
 
-    def forward(self, input_vector):
-        # [to fill] obtain first hidden layer representation
-        h = self.activation(self.W1(input_vector))
+    def train_epoch(
+        self,
+        train_data: list[tuple[torch.Tensor, int]],
+        optimizer: optim.Optimizer,
+        minibatch_size: int = 16,
+    ) -> tuple[float, float]:
+        self.train()
+        correct, total, epoch_loss = 0, 0, 0.0
+        N = len(train_data)  # noqa: N806
 
-        # [to fill] obtain output layer representation
-        z = self.W2(h)
+        random.shuffle(train_data)
+        for minibatch_index in tqdm(range(0, N, minibatch_size), desc="Training"):
+            optimizer.zero_grad()
 
-        # [to fill] obtain probability dist.
-        predicted_vector = self.softmax(z)
+            batch = train_data[minibatch_index : min(minibatch_index + minibatch_size, N)]
+            input_batch = torch.stack([ex[0] for ex in batch]).to(device)
+            label_batch = torch.tensor([ex[1] for ex in batch]).to(device)
 
-        return predicted_vector
+            output = self(input_batch)
+            loss = self.compute_loss(output, label_batch)
+            epoch_loss += loss.item() * label_batch.size(0)
 
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(self.parameters(), max_norm=1.0)
+            optimizer.step()
 
-# Returns:
-# vocab = A set of strings corresponding to the vocabulary
-def make_vocab(data):
-    vocab = set()
-    for document, _ in data:
-        for word in document:
-            vocab.add(word)
-    return vocab
+            _, predicted = torch.max(output, 1)
+            correct += (predicted == label_batch).sum().item()
+            total += label_batch.size(0)
 
+        return correct / total, epoch_loss / total
 
-# Returns:
-# vocab = A set of strings corresponding to the vocabulary including <UNK>
-# word2index = A dictionary mapping word/token to its index (a number in 0, ..., V - 1)
-# index2word = A dictionary inverting the mapping of word2index
-def make_indices(vocab):
-    vocab_list = sorted(vocab)
-    vocab_list.append(unk)
-    word2index = {}
-    index2word = {}
-    for index, word in enumerate(vocab_list):
-        word2index[word] = index
-        index2word[index] = word
-    vocab.add(unk)
-    return vocab, word2index, index2word
+    def evaluate(
+        self,
+        val_data: list[tuple[torch.Tensor, int]],
+        minibatch_size: int = 16,
+    ) -> tuple[float, float]:
+        self.eval()
+        correct, total, val_loss = 0, 0, 0.0
+        N = len(val_data)  # noqa: N806
 
+        with torch.no_grad():
+            for minibatch_index in tqdm(range(0, N, minibatch_size), desc="Validation"):
+                batch = val_data[minibatch_index : min(minibatch_index + minibatch_size, N)]
+                input_batch = torch.stack([ex[0] for ex in batch]).to(device)
+                label_batch = torch.tensor([ex[1] for ex in batch]).to(device)
 
-# Returns:
-# vectorized_data = A list of pairs (vector representation of input, y)
-def convert_to_vector_representation(data, word2index):
-    vectorized_data = []
-    for document, y in data:
-        vector = torch.zeros(len(word2index))
-        for word in document:
-            index = word2index.get(word, word2index[unk])
-            vector[index] += 1
-        vectorized_data.append((vector, y))
-    return vectorized_data
+                output = self(input_batch)
+                loss = self.compute_loss(output, label_batch)
+                val_loss += loss.item() * label_batch.size(0)
 
+                _, predicted = torch.max(output, 1)
+                correct += (predicted == label_batch).sum().item()
+                total += label_batch.size(0)
 
-
-def load_data(train_data, val_data):
-    with open(train_data) as training_f:
-        training = json.load(training_f)
-    with open(val_data) as valid_f:
-        validation = json.load(valid_f)
-
-    tra = []
-    val = []
-    for elt in training:
-        tra.append((elt["text"].split(),int(elt["stars"]-1)))
-    for elt in validation:
-        val.append((elt["text"].split(),int(elt["stars"]-1)))
-
-    return tra, val
+        return correct / total, val_loss / total
 
 
 if __name__ == "__main__":
@@ -113,7 +100,7 @@ if __name__ == "__main__":
 
     print(">>> Setting up environment")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    device_name = torch.cuda.get_device_name(0) if device.type == "cuda" else platform.processor
+    device_name = torch.cuda.get_device_name(0) if device.type == "cuda" else platform.processor()
     print(f"Using device: {device_name} {'(GPU)' if device.type == 'cuda' else '(CPU)'}")
     if device.type == "cuda":
         torch.backends.cudnn.deterministic = True
@@ -121,17 +108,17 @@ if __name__ == "__main__":
     random.seed(42)
 
     print(">>> Loading data")
-    train_data, val_data = load_data(args.train_data, args.val_data)
-    vocab = make_vocab(train_data)
+    train_raw, val_raw = load_data(args.train_data, args.val_data)
+    vocab = make_vocab(train_raw)
     vocab, word2index, index2word = make_indices(vocab)
 
     print(">>> Vectorizing data")
-    train_data = convert_to_vector_representation(train_data, word2index)
-    valid_data = convert_to_vector_representation(val_data, word2index)
+    train_data = convert_to_vector_representation(train_raw, word2index)
+    val_data = convert_to_vector_representation(val_raw, word2index)
 
     print(">>> Building model")
-    model = FFNN(input_dim = len(vocab), h = args.hidden_dim)
-    optimizer = optim.SGD(model.parameters(),lr=0.01, momentum=0.9)
+    model = FFNN(input_dim=len(vocab), hidden_dim=args.hidden_dim).to(device)
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
     scheduler = StepLR(optimizer, step_size=1, gamma=0.75)
 
     print("=" * 125)
@@ -145,67 +132,33 @@ if __name__ == "__main__":
     print("=" * 125)
 
     patience_counter = 0
-    stopping_condition = False
     best = {"epoch": 0, "train_acc": 0, "val_acc": 0, "train_loss": float("inf"), "val_loss": float("inf")}
 
     print(">>> Training")
     for epoch in range(args.epochs):
-        model.train()
-        optimizer.zero_grad()
-        loss = None
-        correct = 0
-        total = 0
-        start_time = time.time()
-        print(f"Training started for epoch {epoch + 1}")
-        random.shuffle(train_data) # Good practice to shuffle order of training data
-        minibatch_size = 16
-        N = len(train_data)
-        for minibatch_index in tqdm(range(N // minibatch_size)):
-            optimizer.zero_grad()
-            loss = None
-            for example_index in range(minibatch_size):
-                input_vector, gold_label = train_data[minibatch_index * minibatch_size + example_index]
-                predicted_vector = model(input_vector)
-                predicted_label = torch.argmax(predicted_vector)
-                correct += int(predicted_label == gold_label)
-                total += 1
-                example_loss = model.compute_loss(predicted_vector.view(1,-1), torch.tensor([gold_label]))
-                if loss is None:
-                    loss = example_loss
-                else:
-                    loss += example_loss
-            loss = loss / minibatch_size
-            loss.backward()
-            optimizer.step()
-        print(f"Training completed for epoch {epoch + 1}")
-        print(f"Training accuracy for epoch {epoch + 1}: {correct / total}")
-        print(f"Training time for this epoch: {time.time() - start_time}")
+        print(f"\nEpoch {epoch + 1}/{args.epochs}")
+        train_acc, train_loss = model.train_epoch(train_data, optimizer)
+        val_acc, val_loss = model.evaluate(val_data)
+        print(f"Train Accuracy: {train_acc:.4f}, Val Accuracy: {val_acc:.4f}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}")
 
+        if val_acc > best["val_acc"]:
+            best = { "epoch": epoch + 1, "train_acc": train_acc, "val_acc": val_acc, "train_loss": train_loss, "val_loss": val_loss}
+            patience_counter = 0
+        else:
+            patience_counter += 1
+            print(f"No validation accuracy improvement. Patience counter: {patience_counter}/{args.patience}")
 
-        loss = None
-        correct = 0
-        total = 0
-        start_time = time.time()
-        print(f"Validation started for epoch {epoch + 1}")
-        minibatch_size = 16
-        N = len(valid_data)
-        for minibatch_index in tqdm(range(N // minibatch_size)):
-            optimizer.zero_grad()
-            loss = None
-            for example_index in range(minibatch_size):
-                input_vector, gold_label = valid_data[minibatch_index * minibatch_size + example_index]
-                predicted_vector = model(input_vector)
-                predicted_label = torch.argmax(predicted_vector)
-                correct += int(predicted_label == gold_label)
-                total += 1
-                example_loss = model.compute_loss(predicted_vector.view(1,-1), torch.tensor([gold_label]))
-                if loss is None:
-                    loss = example_loss
-                else:
-                    loss += example_loss
-            loss = loss / minibatch_size
-        print(f"Validation completed for epoch {epoch + 1}")
-        print(f"Validation accuracy for epoch {epoch + 1}: {correct / total}")
-        print(f"Validation time for this epoch: {time.time() - start_time}")
+        if patience_counter >= args.patience:
+            print("Early stopping triggered")
+            break
 
-    # write out to results/test.out
+        scheduler.step()
+
+    print("\n>>> Reporting Results")
+    print("=" * 125)
+    print(f"Best Epoch: {best['epoch']}")
+    print(f"Train Accuracy: {best['train_acc']:.4f}")
+    print(f"Val Accuracy: {best['val_acc']:.4f}")
+    print(f"Train Loss: {best['train_loss']:.4f}")
+    print(f"Val Loss: {best['val_loss']:.4f}")
+    print("=" * 125)
