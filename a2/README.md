@@ -20,11 +20,19 @@ All code should be run from the root directory of the repository.
 
 Follow the instructions [here](../#repository-setup-vscode) for repository setup.
 
+**Note: Make sure to unzip the word_embeddings.zip file and put the resulting .pkl file in the src directory.**
+
 - **To run the FFNN model**:
     ```bash
     python a2/src/ffnn.py -hd 128 -e 30 -p 5 --train-data a2/src/data/train.json --val-data a2/src/data/val.json --test-data a2/src/data/test.json --do-train
+
+    # or to use defaults
+    python a2/src/ffnn.py --do-train
     ```
 - **To run the RNN model**:
     ```bash
     python a2/src/rnn.py -hd 128 -e 30 -p 5 --train-data a2/src/data/train.json --val-data a2/src/data/val.json --test-data a2/src/data/test.json --do-train
+
+    # or to use defaults
+    python a2/src/rnn.py --do-train
     ```
