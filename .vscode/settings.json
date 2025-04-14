@@ -5,18 +5,26 @@
         "cudnn",
         "Feedforward",
         "FFNN",
+        "figsize",
+        "fontsize",
         "Ibarra",
         "Kabir",
         "Kang",
+        "labelcolor",
+        "linestyle",
         "Llanas",
+        "matplotlib",
         "minibatch",
         "ndarray",
         "numpy",
         "pycodestyle",
         "Syed",
         "tqdm",
+        "twinx",
         "unigram",
         "unsmoothed",
-        "Vectorizing"
+        "Vectorizing",
+        "xlabel",
+        "ylabel"
     ]
 }
