@@ -1,5 +1,6 @@
---index-url https://download.pytorch.org/whl/cu126
+--extra-index-url https://download.pytorch.org/whl/cu126
 
-numpy
-torch
-tqdm
+matplotlib==3.10.1
+numpy==2.1.2
+torch==2.6.0+cu126
+tqdm==4.66.5
