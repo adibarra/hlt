@@ -41,9 +41,7 @@ class RNN(nn.Module):
         minibatch_size: int = 16,
     ) -> tuple[float, float]:
         self.train()
-        correct = 0
-        total = 0
-        epoch_loss = 0.0
+        correct, total, epoch_loss = 0, 0, 0.0
         N = len(train_data)  # noqa: N806
 
         random.shuffle(train_data)
@@ -76,9 +74,7 @@ class RNN(nn.Module):
 
     def evaluate(self, val_data: list[tuple[list[str], int]], word_embedding: dict[str, torch.Tensor]) -> tuple[float, float]:
         self.eval()
-        correct = 0
-        total = 0
-        val_loss = 0.0
+        correct, total, val_loss = 0, 0, 0.0
 
         input_data, labels = [], []
         for input_words, gold_label in val_data:
@@ -114,7 +110,7 @@ if __name__ == "__main__":
 
     print(">>> Setting up environment")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    device_name = torch.cuda.get_device_name(0) if device.type == "cuda" else platform.processor
+    device_name = torch.cuda.get_device_name(0) if device.type == "cuda" else platform.processor()
     print(f"Using device: {device_name} {'(GPU)' if device.type == 'cuda' else '(CPU)'}")
     if device.type == "cuda":
         torch.backends.cudnn.deterministic = True
@@ -142,7 +138,6 @@ if __name__ == "__main__":
     print("=" * 125)
 
     patience_counter = 0
-    stopping_condition = False
     best = {"epoch": 0, "train_acc": 0, "val_acc": 0, "train_loss": float("inf"), "val_loss": float("inf")}
 
     print(">>> Training")
@@ -160,7 +155,6 @@ if __name__ == "__main__":
             print(f"No validation accuracy improvement. Patience counter: {patience_counter}/{args.patience}")
 
         if patience_counter >= args.patience:
-            stopping_condition = True
             print("Early stopping triggered")
             break
 
