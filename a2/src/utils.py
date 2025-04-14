@@ -20,9 +20,8 @@ def process_input(input_words: list[str], word_embedding: dict) -> torch.Tensor:
         else word_embedding.get(i.lower(), unk_embedding).clone().detach()
         for i in input_words
     ]
-    vectors_tensor = torch.stack(vectors)
 
-    return vectors_tensor.view(len(vectors_tensor), 1, -1)
+    return torch.stack(vectors)
 
 def load_data(train_path: str, val_path: str) -> tuple[list[tuple[list[str], int]], list[tuple[list[str], int]]]:
     with Path(train_path).open() as train_file:
