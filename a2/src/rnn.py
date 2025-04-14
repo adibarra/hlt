@@ -3,6 +3,7 @@ from __future__ import annotations
 import pickle
 import platform
 import random
+import sys
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -119,8 +120,12 @@ if __name__ == "__main__":
 
     print(">>> Loading data")
     train_data, val_data = load_data(args.train_data, args.val_data)
-    with Path.open(Path(__file__).parent / "word_embedding.pkl", "rb") as f:
-        word_embedding = pickle.load(f)  # noqa: S301
+    try:
+        with Path.open(Path(__file__).parent / "word_embedding.pkl", "rb") as f:
+            word_embedding = pickle.load(f)  # noqa: S301
+    except FileNotFoundError:
+        print("\033[91mMissing file: 'word_embedding.pkl'. Please unzip the file as instructed in the README.\033[0m")
+        sys.exit(1)
 
     print(">>> Building model")
     model = RNN(input_dim=50, hidden_dim=args.hidden_dim).to(device)
