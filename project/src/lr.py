@@ -26,14 +26,14 @@ def run_sentiment_analysis(data: list) -> tuple[dict, str]:
     X_train = vectorizer.fit_transform(train_texts)  # noqa: N806
 
     print(">>> Training Models with Hyperparameter Tuning")
-    param_grid = {                        # Tested hyperparameters
-        "C": [3.0, 3.25, 3.5, 3.75],      # [0.01, 0.1, 1, 2.5, 3.0, 3.25, 3.5, 3.75, 4.0, 10, 100]
-        "penalty": ["l2"],                # ['l1', 'l2', 'elasticnet', None]
-        "solver": ["saga"],               # ['saga', 'lbfgs', 'liblinear']
-        "l1_ratio": [None],               # [0, 0.3, 0.5, 0.7, 1] note: only used with 'elasticnet' penalty
-        "class_weight": [None],           # [None, 'balanced']
-        "max_iter": [100_000],            # np.linspace(10, 100000, 10).astype(int) note: seems mostly converged at 15
-        "tol": [1e-2, 1e-3, 1e-4, 1e-5],  # [1e-2, 1e-3, 1e-4, 1e-5]
+    param_grid = {                             # Tested hyperparameters
+        "C": [0.1, 0.5, 1, 1.5, 2, 2.5, 3.0],  # [1e-6, 1e-4, 1e-2, 0.1, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3.0, 3.25, 3.5, 3.75, 4.0, 4.25, 4.5, 4.75, 5.0, 10, 25, 50, 100]
+        "penalty": ["l2"],                     # ['l1', 'l2', 'elasticnet', None]
+        "solver": ["saga"],                    # ['saga', 'lbfgs', 'liblinear']
+        "l1_ratio": [None],                    # [0, 0.3, 0.5, 0.7, 1] note: only used with 'elasticnet' penalty
+        "class_weight": [None],                # [None, 'balanced']
+        "max_iter": [100_000],                 # np.linspace(10, 100000, 10).astype(int) note: seems mostly converged at 15
+        "tol": [1e-1, 1e-2, 1e-3, 1e-4],       # [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]
     }
 
     grid_search = GridSearchCV(
@@ -60,19 +60,19 @@ if __name__ == "__main__":
     reports = {}
 
     datasets = [
-        ("YouTube Comments", "project/src/data/youtube.csv"),
         ("Airline Tweets", "project/src/data/tweets.csv"),
-        # ("test", "project/src/data/youtube.csv"),
+        ("YouTube Comments", "project/src/data/youtube.csv"),
+        ("Amazon Reviews", "project/src/data/amazon.csv"),
     ]
 
     for name, path in datasets:
         print(f"\n>>> Loading dataset: {name}")
         data = load_dataset(path)
-        params, report = run_sentiment_analysis(data)
-        reports[name] = {"params": params, "report": report}
+        params, classification = run_sentiment_analysis(data)
+        reports[name] = {"params": params, "classification": classification}
 
-    print("\n>>> Final Statistics:")
+    print("\n>>> Final Statistics")
     print_reports(reports)
 
     print("\n>>> Finished")
-
+    print(f"Average F1 Score: {sum([float(report['classification'].split()[-2]) for report in reports.values()]) / len(reports):.4f}")
