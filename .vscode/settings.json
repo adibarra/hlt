@@ -4,6 +4,7 @@
         "bigram",
         "convolutional",
         "cudnn",
+        "elasticnet",
         "Feedforward",
         "FFNN",
         "figsize",

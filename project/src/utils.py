@@ -9,9 +9,9 @@ from pathlib import Path
 SEED = 42
 
 LABEL_MAP = {
-    "negative": 0,
-    "neutral": 1,
-    "positive": 2,
+    "negative": -1,
+    "neutral": 0,
+    "positive": 1,
 }
 
 def preprocess_text(text: str) -> str:
@@ -25,18 +25,17 @@ def preprocess_text(text: str) -> str:
 def tokenize(text: str) -> list[str]:
     return text.split()
 
-def load_sentiment_csv(path: str) -> list[tuple[str, int]]:
+def load_dataset(path: str) -> list[tuple[str, int]]:
     data = []
     with Path.open(path, "r", encoding="utf-8") as f:
         reader = csv.reader(f)
         for row in reader:
             if len(row) < 2:  # noqa: PLR2004
                 continue
-            raw_text, label = row[0], row[1].strip().lower()
+            text, label = preprocess_text(row[0]), preprocess_text(row[1])
             if label not in LABEL_MAP:
                 continue
-            cleaned_text = preprocess_text(raw_text)
-            data.append((cleaned_text, LABEL_MAP[label]))
+            data.append((text, LABEL_MAP[label]))
     return data
 
 def split_data(data: list) -> tuple[list, list, list]:
@@ -51,3 +50,53 @@ def split_data(data: list) -> tuple[list, list, list]:
     test_data = data[val_end:]
 
     return train_data, val_data, test_data
+
+def wrap_text(text: str, width: int) -> list[str]:
+    words = text.split()
+    lines = []
+    current_line = ""
+    for word in words:
+        if len(current_line) + len(word) + 1 <= width:
+            current_line += (" " if current_line else "") + word
+        else:
+            lines.append(current_line)
+            current_line = word
+    if current_line:
+        lines.append(current_line)
+    return lines
+
+def print_reports(reports: dict) -> None:
+    report_lines = {}
+    param_lines = {}
+    wrap_width = 60
+
+    for name, content in reports.items():
+        if isinstance(content, dict):
+            report_lines[name] = content["report"].splitlines()
+            params_str = ", ".join(f"{k}={v}" for k, v in content["params"].items())
+            wrapped_params = wrap_text(f"Best Params: {params_str}", wrap_width)
+            param_lines[name] = wrapped_params
+        else:
+            report_lines[name] = content.splitlines()
+            param_lines[name] = ["Best Params: N/A"]
+
+    max_lines = max(len(lines) for lines in report_lines.values())
+    for lines in report_lines.values():
+        lines += [""] * (max_lines - len(lines))  # noqa: PLW2901
+
+    for name in report_lines:
+        report_lines[name] += [""] + param_lines[name]
+
+    max_total_lines = max(len(lines) for lines in report_lines.values())
+    for lines in report_lines.values():
+        lines += [""] * (max_total_lines - len(lines))  # noqa: PLW2901
+
+    dataset_names = list(report_lines.keys())
+    header = " | ".join(name.center(wrap_width) for name in dataset_names)
+    divider = " | ".join("=" * wrap_width for _ in dataset_names)
+    print(header)
+    print(divider)
+
+    for i in range(max_total_lines):
+        row = " | ".join(report_lines[name][i].center(wrap_width) for name in dataset_names)
+        print(row)
