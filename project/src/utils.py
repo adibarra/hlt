@@ -32,7 +32,7 @@ def load_dataset(path: str) -> list[tuple[str, int]]:
         for row in reader:
             if len(row) < 2:  # noqa: PLR2004
                 continue
-            text, label = preprocess_text(row[0]), preprocess_text(row[1])
+            label, text = preprocess_text(row[0]), preprocess_text(row[1])
             if label not in LABEL_MAP:
                 continue
             data.append((text, LABEL_MAP[label]))
