@@ -72,7 +72,7 @@ def print_reports(reports: dict) -> None:
 
     for name, content in reports.items():
         if isinstance(content, dict):
-            report_lines[name] = content["report"].splitlines()
+            report_lines[name] = content["classification"].splitlines()
             params_str = ", ".join(f"{k}={v}" for k, v in content["params"].items())
             wrapped_params = wrap_text(f"Best Params: {params_str}", wrap_width)
             param_lines[name] = wrapped_params
