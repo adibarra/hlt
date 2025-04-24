@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import csv
+import random
 import re
 import string
 from pathlib import Path
+
+SEED = 42
 
 LABEL_MAP = {
     "negative": 0,
@@ -35,3 +38,16 @@ def load_sentiment_csv(path: str) -> list[tuple[str, int]]:
             cleaned_text = preprocess_text(raw_text)
             data.append((cleaned_text, LABEL_MAP[label]))
     return data
+
+def split_data(data: list) -> tuple[list, list, list]:
+    random.shuffle(data)
+    total = len(data)
+
+    train_end = int(total * 0.7)
+    val_end = train_end + int(total * 0.2)
+
+    train_data = data[:train_end]
+    val_data = data[train_end:val_end]
+    test_data = data[val_end:]
+
+    return train_data, val_data, test_data
