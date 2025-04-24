@@ -30,4 +30,7 @@ All code should be run from the root directory of the repository.
 
 Follow the instructions [here](../#repository-setup-vscode) for repository setup.
 
-<!-- TODO: Add usage instructions or example command-line usage if needed -->
+- **To run the Linear Regression model**:
+    ```bash
+    python project/src/lr.py
+    ```

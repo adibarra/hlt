@@ -39,3 +39,19 @@ In **Assignment 2**, we implement neural network models for a 5-class sentiment 
 - **Recurrent Neural Network (RNN)**: A more advanced model that uses word embeddings to process sequences of words, capturing dependencies across words in the review.
 
 The forward pass was completed for both models, and they were trained on the provided datasets to predict sentiment ratings. This assignment also provided an introduction to PyTorch and neural network techniques for text classification tasks.
+
+## Final Project – Comparison of Model Architectures for Sentiment Analysis
+
+[[View the report, implementation, and instructions]](./project/)
+
+In our **Final Project**, we implemented and compared four distinct model architectures for **sentiment analysis**, each representing a different class of machine learning or deep learning approaches:
+
+- **Logistic Regression with TF-IDF**: A traditional linear model using term frequency–inverse document frequency to convert text into numerical features. It serves as a strong baseline for sentiment classification tasks.
+
+- **LSTM with Pretrained Embeddings**: A recurrent neural network that leverages GloVe embeddings to model sequential dependencies in text. This architecture captures word order and context, making it well-suited for sentiment detection.
+
+- **Text CNN**: This model uses 1D convolutional filters to capture local patterns in text, such as common word combinations or n-grams. It's a fast and effective approach for sentence-level classification tasks like sentiment analysis.
+
+- **BERT (Transformer-based Model)**: A fine-tuned version of `bert-base-uncased` from the Hugging Face Transformers library. BERT's contextual embeddings and bidirectional attention make it one of the most powerful tools for NLP tasks, including sentiment analysis.
+
+These models were trained and evaluated on real-world sentiment datasets, and their performances were compared using standard classification metrics. Our goal was to understand the trade-offs between model complexity, training time, and accuracy in sentiment prediction.
