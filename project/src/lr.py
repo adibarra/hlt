@@ -65,6 +65,7 @@ if __name__ == "__main__":
         ("Amazon Reviews", "project/src/data/amazon.csv"),
     ]
 
+    print(">>> Running Logistic Regression Sentiment Analysis with TF-IDF Vectorization")
     for name, path in datasets:
         print(f"\n>>> Loading dataset: {name}")
         data = load_dataset(path)
