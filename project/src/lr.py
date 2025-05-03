@@ -1,4 +1,5 @@
 import random
+import time
 
 import torch
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -15,7 +16,7 @@ from utils import (
 )
 
 
-def run_sentiment_analysis(data: list) -> tuple[dict, str]:
+def run_sentiment_analysis(data: list) -> tuple[dict, str, int]:
     print(">>> Vectorizing Dataset")
 
     train_data, val_data, test_data = split_data(data)
@@ -50,13 +51,15 @@ def run_sentiment_analysis(data: list) -> tuple[dict, str]:
     test_texts, test_labels = zip(*test_data)
     X_test = vectorizer.transform(test_texts)  # noqa: N806
     test_pred = best_model.predict(X_test)
+    num_fits = grid_search.n_splits_ * len(grid_search.cv_results_["params"])
 
-    return best_params, classification_report(test_labels, test_pred)
+    return best_params, classification_report(test_labels, test_pred), num_fits
 
 
 if __name__ == "__main__":
     random.seed(SEED)
     torch.manual_seed(SEED)
+    start = time.perf_counter()
     reports = {}
 
     datasets = [
@@ -69,11 +72,13 @@ if __name__ == "__main__":
     for name, path in datasets:
         print(f"\n>>> Loading dataset: {name}")
         data = load_dataset(path)
-        params, classification = run_sentiment_analysis(data)
-        reports[name] = {"params": params, "classification": classification}
+        params, classification, num_fits = run_sentiment_analysis(data)
+        reports[name] = {"params": params, "classification": classification, "num_fits": num_fits}
 
     print("\n>>> Final Statistics")
     print_reports(reports)
 
     print("\n>>> Finished")
+    sum_all_fits = sum(report["num_fits"] for report in reports.values())
     print(f"Average F1 Score: {sum([float(report['classification'].split()[-2]) for report in reports.values()]) / len(reports):.4f}")
+    print(f"Total Time: {time.perf_counter() - start:.2f} seconds for {sum_all_fits} fits")
