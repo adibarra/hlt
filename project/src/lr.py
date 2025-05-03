@@ -60,9 +60,9 @@ if __name__ == "__main__":
     reports = {}
 
     datasets = [
+        ("Amazon Reviews", "project/src/data/amazon.csv"),
         ("Airline Tweets", "project/src/data/tweets.csv"),
         ("YouTube Comments", "project/src/data/youtube.csv"),
-        ("Amazon Reviews", "project/src/data/amazon.csv"),
     ]
 
     print(">>> Running Logistic Regression Sentiment Analysis with TF-IDF Vectorization")
