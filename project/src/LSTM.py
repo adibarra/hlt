@@ -5,7 +5,7 @@
 import numpy as np
 from utils import (
     load_dataset, split_data,
-    LABEL_MAP, print_reports
+    LABEL_MAP
 )
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
