@@ -1,7 +1,9 @@
 --extra-index-url https://download.pytorch.org/whl/cu126
 
 matplotlib==3.10.1
+nltk==3.9.1
 numpy==2.1.2
 scikit-learn==1.6.1
+tensorflow==2.19.0
 torch==2.6.0+cu126
 tqdm==4.66.5
