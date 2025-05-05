@@ -70,10 +70,12 @@ if __name__ == "__main__":
 
     print(">>> Running Logistic Regression Sentiment Analysis with TF-IDF Vectorization")
     for name, path in datasets:
+        start_dataset = time.perf_counter()
         print(f"\n>>> Loading dataset: {name}")
         data = load_dataset(path)
         params, classification, num_fits = run_sentiment_analysis(data)
         reports[name] = {"params": params, "classification": classification, "num_fits": num_fits}
+        print(f"Time taken for {name}: {time.perf_counter() - start_dataset:.2f} seconds for {num_fits} fits")
 
     print("\n>>> Final Statistics")
     print_reports(reports)
