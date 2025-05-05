@@ -6,12 +6,14 @@ import re
 import string
 from pathlib import Path
 
+import numpy as np
+
 SEED = 42
 
 LABEL_MAP = {
-    "negative": -1,
-    "neutral": 0,
-    "positive": 1,
+    "negative": 0,
+    "neutral": 1,
+    "positive": 2,
 }
 
 def preprocess_text(text: str) -> str:
@@ -64,6 +66,14 @@ def wrap_text(text: str, width: int) -> list[str]:
     if current_line:
         lines.append(current_line)
     return lines
+
+def load_glove(filename: str) -> dict[str, np.ndarray]:
+    words = {}
+    with Path(filename).open(encoding="utf-8") as f:
+        for line in f:
+            parts = line.split()
+            words[parts[0]] = np.array(parts[1:], dtype="float32")
+    return words
 
 def print_reports(reports: dict) -> None:
     report_lines = {}

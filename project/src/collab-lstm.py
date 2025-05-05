@@ -1,6 +1,6 @@
 # GOOGLE COLAB WAS USED
 # To install required libraries, uncomment the line below:
-#!pip install tensorflow nltk scikit-learn --quiet
+# !pip install tensorflow nltk scikit-learn --quiet
 
 import numpy as np
 from sklearn.metrics import classification_report
@@ -74,7 +74,7 @@ for dataset_path, dataset_name in datasets:
 
     # Prepare features and labels
     X_train = [text for text, _ in train_data]
-    y_train = np.array([label + 1 for _, label in train_data])
+    y_train = np.array([label for _, label in train_data])
 
     # Class Weight Calculation
     class_weights = compute_class_weight(
@@ -93,7 +93,7 @@ for dataset_path, dataset_name in datasets:
     X_train = pad_sequences(tokenizer.texts_to_sequences(X_train), maxlen=max_length)
     X_val = pad_sequences(tokenizer.texts_to_sequences(
         [text for text, _ in val_data]), maxlen=max_length)
-    y_val = np.array([label + 1 for _, label in val_data])
+    y_val = np.array([label for _, label in val_data])
 
     # Embeddings
     embedding_matrix = np.zeros((len(tokenizer.word_index) + 1, 50))
@@ -127,7 +127,7 @@ for dataset_path, dataset_name in datasets:
     # Evaluation
     X_test = pad_sequences(tokenizer.texts_to_sequences(
         [text for text, _ in test_data]), maxlen=max_length)
-    y_test = np.array([label + 1 for _, label in test_data])
+    y_test = np.array([label for _, label in test_data])
 
     test_predictions = np.argmax(model.predict(X_test), axis=1)
 
