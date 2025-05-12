@@ -7,3 +7,8 @@ scikit-learn==1.6.1
 tensorflow==2.19.0
 torch==2.6.0+cu126
 tqdm==4.66.5
+
+# uncomment to run tinyBERT.py
+#transformers
+#datasets
+#pandas
