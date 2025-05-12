@@ -52,6 +52,6 @@ In our **Final Project**, we implemented and compared four distinct model archit
 
 - **Text CNN**: This model uses 1D convolutional filters to capture local patterns in text, such as common word combinations or n-grams. It's a fast and effective approach for sentence-level classification tasks like sentiment analysis.
 
-- **BERT (Transformer-based Model)**: A fine-tuned version of `bert-base-uncased` from the Hugging Face Transformers library. BERT's contextual embeddings and bidirectional attention make it one of the most powerful tools for NLP tasks, including sentiment analysis.
+- **TinyBERT (Transformer-based Model)**: A compact transformer model from `huawei-noah/TinyBERT_General_4L_312D`, designed to be significantly smaller and faster than BERT while maintaining strong performance on NLP tasks. Based on the TinyBERT distillation method, it offers efficient fine-tuning for sentiment analysis without the heavy computational cost of full-sized transformer models.
 
 These models were trained and evaluated on real-world sentiment datasets, and their performances were compared using standard classification metrics. Our goal was to understand the trade-offs between model complexity, training time, and accuracy in sentiment prediction.
