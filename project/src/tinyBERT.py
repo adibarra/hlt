@@ -1,8 +1,8 @@
+import shutil
 import time
-# # see requirements.txt for needed imports # #
+
 import numpy as np
 import pandas as pd
-import torch
 from datasets import Dataset
 from sklearn.metrics import classification_report, precision_recall_fscore_support
 from sklearn.model_selection import train_test_split
@@ -12,6 +12,7 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
+from utils import LABEL_MAP
 
 # Constants
 MODEL_NAME = "huawei-noah/TinyBERT_General_4L_312D"
@@ -21,14 +22,12 @@ DATASETS = [
     ("youtube", "project/src/data/youtube.csv"),
 ]
 
-LABEL_MAPPING = {"negative": 0, "neutral": 1, "positive": 2}
-
 # Function to preprocess data
 def preprocess_data(file_path):
     df = pd.read_csv(file_path)
     df = df.dropna()
-    df = df[df["sentiment"].isin(LABEL_MAPPING.keys())]
-    df["label"] = df["sentiment"].map(LABEL_MAPPING)
+    df = df[df["sentiment"].isin(LABEL_MAP.keys())]
+    df["label"] = df["sentiment"].map(LABEL_MAP)
     return df
 
 # Metrics function
@@ -71,7 +70,7 @@ for name, path in DATASETS:
     model = AutoModelForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=3)
 
     training_args = TrainingArguments(
-        output_dir=f"./results_{name}",
+        output_dir=f"./project/src/tmp/results_{name}",
         do_eval=True,
         num_train_epochs=3,
         per_device_train_batch_size=16,
@@ -110,4 +109,7 @@ for name, path in DATASETS:
     # Optionally print classification report
     preds = np.argmax(predictions.predictions, axis=1)
     print("\nClassification Report:")
-    print(classification_report(test_labels, preds, target_names=LABEL_MAPPING.keys()))
+    print(classification_report(test_labels, preds, target_names=LABEL_MAP.keys()))
+
+    # Delete tmp files
+    shutil.rmtree("./project/src/tmp", ignore_errors=True)
