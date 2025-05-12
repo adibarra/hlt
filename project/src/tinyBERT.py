@@ -9,9 +9,11 @@ from sklearn.model_selection import train_test_split
 from transformers import (
     AutoModelForSequenceClassification,
     AutoTokenizer,
+    PreTrainedTokenizerBase,
     Trainer,
     TrainingArguments,
 )
+from transformers.trainer_utils import EvalPrediction
 from utils import LABEL_MAP
 
 # Constants
@@ -23,29 +25,29 @@ DATASETS = [
 ]
 
 # Function to preprocess data
-def preprocess_data(file_path):
-    df = pd.read_csv(file_path)
-    df = df.dropna()
-    df = df[df["sentiment"].isin(LABEL_MAP.keys())]
+def preprocess_data(file_path: str) -> pd.DataFrame:
+    df = pd.read_csv(file_path)  # noqa: PD901
+    df = df.dropna()  # noqa: PD901
+    df = df[df["sentiment"].isin(LABEL_MAP.keys())]  # noqa: PD901
     df["label"] = df["sentiment"].map(LABEL_MAP)
     return df
 
 # Metrics function
-def compute_metrics(pred):
-    labels = pred.label_ids
-    preds = np.argmax(pred.predictions, axis=1)
-    precision, recall, f1, _ = precision_recall_fscore_support(labels, preds, average="weighted")
+def compute_metrics(pred: EvalPrediction) -> dict:
+    true_labels = pred.label_ids
+    predicted_labels = np.argmax(pred.predictions, axis=1)
+    precision, recall, f1_score, _ = precision_recall_fscore_support(true_labels, predicted_labels, average="weighted")
     return {
         "precision": precision,
         "recall": recall,
-        "f1": f1,
+        "f1": f1_score,
     }
 
 # Main loop through datasets
 for name, path in DATASETS:
     print(f"\n=== Training on {name} dataset ===")
 
-    df = preprocess_data(path)
+    df = preprocess_data(path)  # noqa: PD901
 
     # Splitting data
     train_texts, temp_texts, train_labels, temp_labels = train_test_split(df["text"], df["label"], test_size=0.2, random_state=42)
@@ -54,7 +56,7 @@ for name, path in DATASETS:
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
     # Tokenize data
-    def tokenize_function(texts):
+    def tokenize_function(texts: pd.Series, tokenizer: PreTrainedTokenizerBase = tokenizer) -> dict:
         return tokenizer(list(texts), truncation=True, padding=True, max_length=128)
 
     train_encodings = tokenize_function(train_texts)
