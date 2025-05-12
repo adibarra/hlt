@@ -1,14 +1,13 @@
 --extra-index-url https://download.pytorch.org/whl/cu126
 
+datasets==3.6.0
 matplotlib==3.10.1
 nltk==3.9.1
 numpy==2.1.2
+pandas==2.2.3
 scikit-learn==1.6.1
 tensorflow==2.19.0
 torch==2.6.0+cu126
 tqdm==4.66.5
-
-# uncomment to run tinyBERT.py
-#transformers
-#datasets
-#pandas
+transformers[torch]==4.51.3
+tf-keras==2.19.0
