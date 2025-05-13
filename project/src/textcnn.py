@@ -3,7 +3,6 @@ import time
 
 import numpy as np
 import tensorflow as tf
-import torch
 from sklearn.metrics import classification_report
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Conv1D, Dense, Embedding, GlobalMaxPooling1D
@@ -86,7 +85,6 @@ def run_sentiment_analysis(data: list) -> tuple[dict, str, int]:
 
 if __name__ == "__main__":
     random.seed(SEED)
-    torch.manual_seed(SEED)
     tf.random.set_seed(SEED)
     start = time.perf_counter()
     reports = {}
