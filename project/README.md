@@ -42,7 +42,7 @@ Follow the instructions [here](../#repository-setup-vscode) for repository setup
 
 - **To run the Text CNN model**:
     ```bash
-    python project/src/text-cnn.py
+    python project/src/textcnn.py
     ```
 
 - **To run the TinyBERT model**:

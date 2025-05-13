@@ -2,6 +2,7 @@
     "cSpell.words": [
         "adibarra",
         "bigram",
+        "colab",
         "convolutional",
         "crossentropy",
         "cudnn",
@@ -31,8 +32,10 @@
         "pycodestyle",
         "scikit",
         "Syed",
+        "textcnn",
         "tfidf",
         "TfidfVectorizer",
+        "tinybert",
         "tqdm",
         "twinx",
         "unigram",
